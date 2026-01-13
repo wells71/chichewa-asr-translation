@@ -45,7 +45,7 @@ st.markdown('<div class="main-header">Chichewa Speech Recognition & Translation 
 st.markdown("""
 <div class="info-text">
 This system provides automated speech recognition and bidirectional translation services for Chichewa (Nyanja) and English.
-Select a service below to begin.
+Select one of the 4 services below to begin.
 </div>
 """, unsafe_allow_html=True)
 
