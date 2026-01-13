@@ -19,7 +19,7 @@ st.markdown("""
     .main-header {
         font-size: 2.2rem;
         font-weight: 600;
-        color: #1f1f1f;
+        color: #ffffff;
         margin-bottom: 1.5rem;
     }
     .result-box {
@@ -30,6 +30,7 @@ st.markdown("""
         margin: 1rem 0;
         font-size: 1rem;
         line-height: 1.6;
+        color: #1f1f1f;
     }
     .info-text {
         color: #666;
