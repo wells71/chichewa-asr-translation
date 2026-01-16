@@ -1,25 +1,26 @@
 import streamlit as st
 import requests
 
-# =============================
-# API Configuration
-# =============================
+# ======================================================
+# API CONFIG
+# ======================================================
 ASR_API_URL = "https://zerolat3ncy-chichewa-asr-translation.hf.space"
 EN_NYA_API_URL = "https://zerolat3ncy-en-chichewa-translation.hf.space"
 
-# =============================
-# Page config
-# =============================
+# ======================================================
+# PAGE CONFIG
+# ======================================================
 st.set_page_config(
     page_title="Chichewa ASR & Translation",
     page_icon="🔊",
     layout="wide"
 )
 
-# =============================
-# Helpers
-# =============================
+# ======================================================
+# HELPERS
+# ======================================================
 def safe_post(url, **kwargs):
+    """Safe HF POST request with full guarding."""
     try:
         r = requests.post(url, **kwargs)
     except requests.exceptions.Timeout:
@@ -34,8 +35,7 @@ def safe_post(url, **kwargs):
         st.text(r.text[:1000])
         st.stop()
 
-    content_type = r.headers.get("content-type", "")
-    if "json" not in content_type:
+    if "json" not in r.headers.get("content-type", ""):
         st.error("HF returned non-JSON (model loading or crashed)")
         st.text(r.text[:1000])
         st.stop()
@@ -43,7 +43,8 @@ def safe_post(url, **kwargs):
     return r.json()
 
 
-def load_audio_bytes(uploaded_file, max_mb=10):
+def load_audio(uploaded_file, max_mb=10):
+    """Read audio safely as bytes."""
     audio_bytes = uploaded_file.read()
     size_mb = len(audio_bytes) / (1024 * 1024)
 
@@ -54,9 +55,9 @@ def load_audio_bytes(uploaded_file, max_mb=10):
     return audio_bytes
 
 
-# =============================
-# Custom CSS
-# =============================
+# ======================================================
+# STYLES
+# ======================================================
 st.markdown("""
 <style>
 .main-header {
@@ -83,9 +84,9 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# =============================
-# Header
-# =============================
+# ======================================================
+# HEADER
+# ======================================================
 st.markdown(
     '<div class="main-header">Chichewa Speech Recognition & Translation System</div>',
     unsafe_allow_html=True
@@ -93,14 +94,14 @@ st.markdown(
 
 st.markdown("""
 <div class="info-text">
-This system provides automated speech recognition and bidirectional translation
-services for Chichewa (Nyanja) and English.
+Automated speech recognition and bidirectional translation
+for Chichewa (Nyanja) and English.
 </div>
 """, unsafe_allow_html=True)
 
-# =============================
-# Tabs
-# =============================
+# ======================================================
+# TABS
+# ======================================================
 tab1, tab2, tab3, tab4 = st.tabs([
     "Audio → English Pipeline",
     "Audio Transcription",
@@ -114,20 +115,21 @@ tab1, tab2, tab3, tab4 = st.tabs([
 with tab1:
     st.subheader("Audio to English Translation Pipeline")
 
-    audio_file = st.file_uploader(
+    audio = st.file_uploader(
         "Upload Chichewa audio",
-        type=["wav", "mp3", "m4a", "flac", "ogg"]
+        type=["wav", "mp3", "m4a", "flac", "ogg"],
+        key="pipeline_audio"
     )
 
-    if audio_file:
-        st.audio(audio_file)
+    if audio:
+        st.audio(audio)
 
-        if st.button("Process Audio", type="primary"):
+        if st.button("Process Audio", type="primary", key="btn_pipeline"):
             with st.spinner("Processing audio..."):
-                audio_bytes = load_audio_bytes(audio_file)
+                audio_bytes = load_audio(audio)
 
                 files = {
-                    "file": (audio_file.name, audio_bytes, audio_file.type)
+                    "file": (audio.name, audio_bytes, audio.type)
                 }
 
                 result = safe_post(
@@ -160,21 +162,21 @@ with tab1:
 with tab2:
     st.subheader("Audio Transcription Service")
 
-    audio_file = st.file_uploader(
+    audio = st.file_uploader(
         "Upload Chichewa audio",
         type=["wav", "mp3", "m4a", "flac", "ogg"],
-        key="transcribe"
+        key="transcribe_audio"
     )
 
-    if audio_file:
-        st.audio(audio_file)
+    if audio:
+        st.audio(audio)
 
-        if st.button("Transcribe Audio", type="primary"):
+        if st.button("Transcribe Audio", type="primary", key="btn_transcribe"):
             with st.spinner("Transcribing..."):
-                audio_bytes = load_audio_bytes(audio_file)
+                audio_bytes = load_audio(audio)
 
                 files = {
-                    "file": (audio_file.name, audio_bytes, audio_file.type)
+                    "file": (audio.name, audio_bytes, audio.type)
                 }
 
                 result = safe_post(
@@ -199,10 +201,11 @@ with tab3:
 
     chichewa_text = st.text_area(
         "Enter Chichewa text",
-        height=150
+        height=150,
+        key="nya_text"
     )
 
-    if st.button("Translate", type="primary"):
+    if st.button("Translate", type="primary", key="btn_nya_to_en"):
         if not chichewa_text.strip():
             st.warning("Please enter text to translate.")
         else:
@@ -239,10 +242,11 @@ with tab4:
 
     english_text = st.text_area(
         "Enter English text",
-        height=150
+        height=150,
+        key="en_text"
     )
 
-    if st.button("Translate", type="primary"):
+    if st.button("Translate", type="primary", key="btn_en_to_nya"):
         if not english_text.strip():
             st.warning("Please enter text to translate.")
         else:
@@ -271,7 +275,7 @@ with tab4:
 
                 st.success("Translation completed successfully.")
 
-# =============================
-# Footer
-# =============================
+# ======================================================
+# FOOTER
+# ======================================================
 st.markdown("---")
